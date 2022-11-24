@@ -90,10 +90,10 @@ func TestFilter(t *testing.T) {
 }
 
 type MessageSystem struct {
-	mock.Mock
-
 	world  ecs.World
 	filter ecs.Filter
+
+	mock.Mock
 }
 
 func (s *MessageSystem) Init() {
@@ -106,10 +106,10 @@ func (s *MessageSystem) Run() {
 
 func NewMessageSystem(world ecs.World) *MessageSystem {
 	return &MessageSystem{
-		mock.Mock{},
-
 		world,
 		world.GetFilter(MessageComponentMask),
+
+		mock.Mock{},
 	}
 }
 
