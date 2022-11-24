@@ -5,6 +5,7 @@ import (
 
 	"github.com/alcoholiclobster/go-ecs/ecs"
 	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/mock"
 )
 
 var (
@@ -58,7 +59,7 @@ func TestEntity(t *testing.T) {
 	assert.Equal(ecs.ComponentMask(0), entity.GetMask(), "should return empty mask")
 }
 
-func TestFilters(t *testing.T) {
+func TestFilter(t *testing.T) {
 	assert := assert.New(t)
 
 	world := ecs.NewWorld()
@@ -89,26 +90,42 @@ func TestFilters(t *testing.T) {
 }
 
 type MessageSystem struct {
-	ecs.System
+	mock.Mock
 
+	world  ecs.World
 	filter ecs.Filter
 }
 
-func (s *MessageSystem) Run() {
+func (s *MessageSystem) Init() {
+	s.Called()
+}
 
+func (s *MessageSystem) Run() {
+	s.Called()
 }
 
 func NewMessageSystem(world ecs.World) *MessageSystem {
 	return &MessageSystem{
-		filter: world.GetFilter(MessageComponentMask),
+		mock.Mock{},
+
+		world,
+		world.GetFilter(MessageComponentMask),
 	}
 }
 
-func TestSystems(t *testing.T) {
-	// assert := assert.New(t)
-
+func TestSystem(t *testing.T) {
 	world := ecs.NewWorld()
+	messageSystem := NewMessageSystem(world)
+	messageSystem.On("Run").Return()
+	messageSystem.On("Init").Return()
 
-	world.AddSystem(NewMessageSystem(world))
+	world.
+		AddSystem(messageSystem).
+		Init()
+
+	messageSystem.AssertCalled(t, "Init")
+
 	world.Run()
+
+	messageSystem.AssertCalled(t, "Run")
 }

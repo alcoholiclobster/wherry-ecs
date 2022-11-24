@@ -6,6 +6,8 @@ type World interface {
 	CreateEntity() Entity
 	GetFilter(mask ComponentMask) Filter
 	AddSystem(system System) World
+
+	Init() World
 	Run()
 }
 
@@ -25,10 +27,15 @@ type Component interface {
 	GetMask() ComponentMask
 }
 
-type System interface {
-	GetWorld() World
+type InitSystem interface {
+	Init()
+}
+
+type RunSystem interface {
 	Run()
 }
+
+type System interface{}
 
 type Filter interface {
 	GetEntities() []Entity

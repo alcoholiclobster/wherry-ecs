@@ -3,7 +3,7 @@ package ecs
 type world struct {
 	entities []*entity
 	filters  map[ComponentMask]*filter
-	systems  []*system
+	systems  []System
 }
 
 func (w *world) CreateEntity() Entity {
@@ -39,10 +39,16 @@ func (w *world) GetFilter(mask ComponentMask) Filter {
 }
 
 func (w *world) AddSystem(s System) World {
-	if s, ok := s.(*system); ok {
-		w.systems = append(w.systems, s)
-	} else {
-		panic("invalid system")
+	w.systems = append(w.systems, s)
+
+	return w
+}
+
+func (w *world) Init() World {
+	for _, s := range w.systems {
+		if s, ok := s.(InitSystem); ok {
+			s.Init()
+		}
 	}
 
 	return w
@@ -55,7 +61,9 @@ func (w *world) Run() {
 		}
 	}
 	for _, s := range w.systems {
-		s.Run()
+		if s, ok := s.(RunSystem); ok {
+			s.Run()
+		}
 	}
 }
 
@@ -63,6 +71,6 @@ func NewWorld() World {
 	return &world{
 		make([]*entity, 0),
 		make(map[ComponentMask]*filter),
-		make([]*system, 0),
+		make([]System, 0),
 	}
 }
