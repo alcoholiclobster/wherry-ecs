@@ -29,7 +29,7 @@ func (c *MessageComponent) GetMask() ecs.ComponentMask {
 	return MessageComponentMask
 }
 
-func TestEntity(t *testing.T) {
+func TestComponent(t *testing.T) {
 	assert := assert.New(t)
 
 	world := ecs.NewWorld()
@@ -128,4 +128,24 @@ func TestSystem(t *testing.T) {
 	world.Run()
 
 	messageSystem.AssertCalled(t, "Run")
+}
+
+func TestEntity(t *testing.T) {
+	assert := assert.New(t)
+	world := ecs.NewWorld()
+
+	entity := world.CreateEntity()
+	entity.Add(&ValueComponent{Value: 5})
+
+	filter := world.GetFilter(ValueComponentMask)
+
+	filterEntity := filter.GetEntities()[0]
+	assert.Equal(entity, filterEntity)
+
+	entity.Del(ValueComponentMask)
+	assert.Len(filter.GetEntities(), 0)
+
+	world.Run()
+
+	assert.False(entity.IsValid())
 }
