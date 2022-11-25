@@ -7,7 +7,7 @@ type World interface {
 	GetFilter(mask ComponentMask) Filter
 	AddSystem(system System) World
 
-	Init() World
+	Init()
 	Run()
 }
 

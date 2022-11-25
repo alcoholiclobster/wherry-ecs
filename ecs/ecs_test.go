@@ -142,6 +142,8 @@ func TestEntity(t *testing.T) {
 	filterEntity := filter.GetEntities()[0]
 	assert.Equal(entity, filterEntity)
 
+	world.Run()
+
 	entity.Del(ValueComponentMask)
 	assert.Len(filter.GetEntities(), 0)
 

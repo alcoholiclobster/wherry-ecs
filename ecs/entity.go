@@ -1,11 +1,16 @@
 package ecs
 
+type entityId int
+
 type entity struct {
-	id          int
-	mask        ComponentMask
-	components  map[ComponentMask]Component
+	id    entityId
+	mask  ComponentMask
+	world *world
+
 	isDirty     bool
 	isDestroyed bool
+
+	components map[ComponentMask]Component
 }
 
 func (e entity) GetMask() ComponentMask {
@@ -22,7 +27,7 @@ func (e *entity) Add(component Component) Entity {
 	}
 
 	e.components[component.GetMask()] = component
-	e.mask |= component.GetMask()
+	e.setMask(e.mask | component.GetMask())
 	e.isDirty = true
 
 	return e
@@ -57,10 +62,16 @@ func (e *entity) Del(mask ComponentMask) Entity {
 	}
 
 	delete(e.components, mask)
-	e.mask &^= mask
+	e.setMask(e.mask &^ mask)
 	e.isDirty = true
 
 	return e
+}
+
+func (e *entity) setMask(mask ComponentMask) {
+	e.world.removeMaskEntity(e.mask, e.id)
+	e.mask = mask
+	e.world.addMaskEntity(e.mask, e.id)
 }
 
 func (e *entity) Destroy() {
@@ -68,9 +79,7 @@ func (e *entity) Destroy() {
 		panic("access deleted entity")
 	}
 
-	for mask := range e.components {
-		e.Del(mask)
-	}
-
 	e.isDestroyed = true
+	e.world.removeMaskEntity(e.mask, e.id)
+	e.mask = 0
 }
