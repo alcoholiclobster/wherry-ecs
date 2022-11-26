@@ -75,10 +75,10 @@ func TestFilter(t *testing.T) {
 	world.CreateEntity().
 		Add(&ValueComponent{Value: 3})
 
-	world.CreateEntity().
+	e1 := world.CreateEntity().
 		Add(&MessageComponent{Message: "c"})
 
-	world.CreateEntity().
+	e2 := world.CreateEntity().
 		Add(&MessageComponent{Message: "d"})
 
 	assert.Len(world.GetFilter(ValueComponentMask|MessageComponentMask).GetEntities(), 2)
@@ -87,6 +87,12 @@ func TestFilter(t *testing.T) {
 
 	(*world.GetFilter(ValueComponentMask | MessageComponentMask).GetEntities()[0].Get(ValueComponentMask)).(*ValueComponent).Value = 123
 	assert.Equal(123, (*world.GetFilter(ValueComponentMask).GetEntities()[0].Get(ValueComponentMask)).(*ValueComponent).Value)
+
+	e2.Destroy()
+	assert.Len(world.GetFilter(MessageComponentMask).GetEntities(), 3)
+
+	e1.Del(MessageComponentMask)
+	assert.Len(world.GetFilter(MessageComponentMask).GetEntities(), 2)
 }
 
 type MessageSystem struct {

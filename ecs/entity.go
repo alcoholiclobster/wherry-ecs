@@ -7,7 +7,6 @@ type entity struct {
 	mask  ComponentMask
 	world *world
 
-	isDirty     bool
 	isDestroyed bool
 
 	components map[ComponentMask]Component
@@ -28,7 +27,6 @@ func (e *entity) Add(component Component) Entity {
 
 	e.components[component.GetMask()] = component
 	e.setMask(e.mask | component.GetMask())
-	e.isDirty = true
 
 	return e
 }
@@ -63,15 +61,14 @@ func (e *entity) Del(mask ComponentMask) Entity {
 
 	delete(e.components, mask)
 	e.setMask(e.mask &^ mask)
-	e.isDirty = true
 
 	return e
 }
 
 func (e *entity) setMask(mask ComponentMask) {
-	e.world.removeMaskEntity(e.mask, e.id)
+	e.world.removeEntityFromFilters(e.mask, e)
 	e.mask = mask
-	e.world.addMaskEntity(e.mask, e.id)
+	e.world.addEntityToFilters(e.mask, e)
 }
 
 func (e *entity) Destroy() {
@@ -80,6 +77,6 @@ func (e *entity) Destroy() {
 	}
 
 	e.isDestroyed = true
-	e.world.removeMaskEntity(e.mask, e.id)
+	e.world.removeEntityFromFilters(e.mask, e)
 	e.mask = 0
 }
