@@ -85,16 +85,14 @@ func (w *world) Run() {
 }
 
 func (w *world) addEntityToFilters(mask ComponentMask, e *entity) {
-	if mask == 0 {
-		return
-	}
-
-	for _, f := range w.filters {
-		f.add(e)
+	if mask != 0 {
+		for _, f := range w.filters {
+			f.add(e)
+		}
 	}
 }
 
-func (w *world) removeEntityFromFilters(mask ComponentMask, e *entity, isDestroying bool) {
+func (w *world) removeEntityFromFilters(mask ComponentMask, e *entity) {
 	if e.mask != 0 {
 		for _, f := range w.filters {
 			if f.check(mask) {
@@ -103,7 +101,7 @@ func (w *world) removeEntityFromFilters(mask ComponentMask, e *entity, isDestroy
 		}
 	}
 
-	if isDestroying {
+	if !e.IsValid() {
 		w.entities[e.id] = nil
 	}
 }

@@ -102,10 +102,10 @@ func (e *entity) Destroy() {
 		return
 	}
 
-	e.world.removeEntityFromFilters(e.mask, e, true)
+	e.isDestroyed = true
+	e.world.removeEntityFromFilters(e.mask, e)
 	e.mask = 0
 	e.components = nil
-	e.isDestroyed = true
 }
 
 func (e entity) String() string {
@@ -115,8 +115,9 @@ func (e entity) String() string {
 	return fmt.Sprintf("Entity(%d)", e.id)
 }
 
+// Set entity mask and notify world about changes
 func (e *entity) setMask(mask ComponentMask) {
-	e.world.removeEntityFromFilters(e.mask, e, false)
+	e.world.removeEntityFromFilters(e.mask, e)
 	e.mask = mask
 	e.world.addEntityToFilters(e.mask, e)
 }

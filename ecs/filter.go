@@ -3,8 +3,8 @@ package ecs
 const resize_amount = 500
 
 type filter struct {
-	w    *world
-	mask ComponentMask
+	world *world
+	mask  ComponentMask
 
 	sparse []int
 	dense  []int
@@ -35,7 +35,7 @@ func (f *filter) add(e Entity) {
 func (f *filter) get() []Entity {
 	entities := make([]Entity, len(f.dense))
 	for i, item := range f.dense {
-		entities[i] = f.w.entities[item]
+		entities[i] = f.world.entities[item]
 	}
 
 	return entities
@@ -47,23 +47,22 @@ func (f *filter) del(e Entity) {
 		return
 	}
 
-	element := e.GetId()
+	entityId := e.GetId()
 
-	last := f.dense[len(f.dense)-1]
-	f.dense[len(f.dense)-1] = f.dense[f.sparse[element]]
-	f.dense[f.sparse[element]] = last
+	dlen := len(f.dense) - 1
+	last := f.dense[dlen]
+	// swap items
+	f.dense[dlen], f.dense[f.sparse[entityId]] = f.dense[f.sparse[entityId]], f.dense[dlen]
+	f.sparse[entityId], f.sparse[last] = f.sparse[last], f.sparse[entityId]
 
-	tmp := f.sparse[element]
-	f.sparse[element] = f.sparse[last]
-	f.sparse[last] = tmp
-
-	f.dense = f.dense[:len(f.dense)-1]
+	f.dense = f.dense[:dlen]
 }
 
 func newFilter(world *world, mask ComponentMask) filter {
 	return filter{
-		w:      world,
-		mask:   mask,
+		world: world,
+		mask:  mask,
+
 		sparse: make([]int, 1),
 		dense:  make([]int, 0),
 	}
