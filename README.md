@@ -1,6 +1,6 @@
 # Go ECS Framework
 
-[![Go Report Card](https://goreportcard.com/badge/github.com/alcoholiclobster/wherry-ecs)](https://goreportcard.com/report/github.com/alcoholiclobster/wherry-ecs)
+[![Go Report Card](https://goreportcard.com/badge/github.com/alcoholiclobster/wherry-ecs#)](https://goreportcard.com/report/github.com/alcoholiclobster/wherry-ecs)
 
 TODO
 
