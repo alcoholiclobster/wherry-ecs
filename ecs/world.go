@@ -4,25 +4,22 @@ type world struct {
 	entities []*entity
 	filters  map[ComponentMask]*filter
 	systems  []System
+
+	isInitialized bool
 }
 
-func (w *world) CreateEntity() Entity {
-	e := entity{
-		id:          0,
-		mask:        0,
-		world:       w,
-		isDestroyed: false,
-		components:  map[ComponentMask]Component{},
-	}
+func (w *world) NewEntity() Entity {
+	e := newEntity(w)
 
 	for i, e2 := range w.entities {
 		if e2 == nil {
-			e.id = int(i)
+			e.id = i
+			w.entities[i] = &e
 			return &e
 		}
 	}
 
-	e.id = int(len(w.entities))
+	e.id = len(w.entities)
 	w.entities = append(w.entities, &e)
 
 	return &e
@@ -38,7 +35,9 @@ func (w *world) Filter(mask ComponentMask) []Entity {
 
 	// Add matching existing entities to filter
 	for _, e := range w.entities {
-		f.add(e)
+		if e != nil {
+			f.add(e)
+		}
 	}
 
 	return f.get()
@@ -51,62 +50,65 @@ func (w *world) AddSystem(s System) World {
 }
 
 func (w *world) Init() {
+	if w.isInitialized {
+		panic("world is already initalized")
+	}
+
 	for _, s := range w.systems {
 		if s, ok := s.(InitSystem); ok {
 			s.Init()
-			w.cleanup()
 		}
 	}
 
-	if len(w.systems) == 0 {
-		w.cleanup()
-	}
+	w.isInitialized = true
 }
 
 func (w *world) Run() {
+	if !w.isInitialized {
+		panic("world is not initalized")
+	}
+
 	for _, s := range w.systems {
 		if s, ok := s.(RunSystem); ok {
 			s.Run()
-			w.cleanup()
-		}
-	}
-
-	if len(w.systems) == 0 {
-		w.cleanup()
-	}
-}
-
-func (w *world) cleanup() {
-	for i, e := range w.entities {
-		if e.isDestroyed || e.mask == 0 {
-			e.isDestroyed = true
-			w.entities[i] = nil
 		}
 	}
 }
 
-func (w *world) addEntityToFilters(mask ComponentMask, entity Entity) {
+func (w *world) addEntityToFilters(mask ComponentMask, e *entity) {
 	if mask == 0 {
 		return
 	}
 
 	for _, f := range w.filters {
-		f.add(entity)
+		f.add(e)
 	}
 }
 
-func (w *world) removeEntityFromFilters(mask ComponentMask, entity Entity) {
-	for _, f := range w.filters {
-		if f.check(mask) {
-			f.del(entity)
+func (w *world) removeEntityFromFilters(mask ComponentMask, e *entity, isDestroying bool) {
+	if e.mask != 0 {
+		for _, f := range w.filters {
+			if f.check(mask) {
+				f.del(e)
+			}
 		}
 	}
+
+	if isDestroying {
+		w.entities[e.id] = nil
+	}
+}
+
+func (w world) String() string {
+	return "World"
 }
 
 func NewWorld() World {
 	return &world{
-		make([]*entity, 0),
-		make(map[ComponentMask]*filter),
-		make([]System, 0),
+		entities: make([]*entity, 0),
+		systems:  make([]System, 0),
+		filters:  make(map[ComponentMask]*filter),
+
+		isInitialized: false,
 	}
 }

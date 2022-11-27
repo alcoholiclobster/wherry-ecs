@@ -9,8 +9,13 @@ import (
 )
 
 var (
-	ValueComponentMask   = ecs.ComponentMask(1 << 0)
-	MessageComponentMask = ecs.ComponentMask(1 << 1)
+	ValueComponentMask   = ecs.NewMask()
+	MessageComponentMask = ecs.NewMask()
+)
+
+var (
+	ValueComponentRef   = &ValueComponent{}
+	MessageComponentRef = &MessageComponent{}
 )
 
 type ValueComponent struct {
@@ -35,28 +40,28 @@ func TestComponent(t *testing.T) {
 	world := ecs.NewWorld()
 	assert.NotNil(world, "should create world")
 
-	entity := world.CreateEntity()
-	assert.NotNil(entity, "should create entity")
+	e := world.NewEntity()
+	assert.NotNil(e, "should create entity")
 
-	entity.Add(&ValueComponent{Value: 5})
-	assert.Equal(5, (*entity.Get(ValueComponentMask)).(*ValueComponent).Value, "should add component")
-	assert.Equal(ValueComponentMask, entity.GetMask(), "should update entity mask")
+	e.Add(&ValueComponent{Value: 5})
+	assert.Equal(5, (*e.Get(ValueComponentMask)).(*ValueComponent).Value, "should add component")
+	assert.Equal(ValueComponentMask, e.GetMask(), "should update entity mask")
 
-	entity.Add(&ValueComponent{Value: 15})
-	assert.Equal(15, (*entity.Get(ValueComponentMask)).(*ValueComponent).Value, "should overwrite component")
+	e.Add(&ValueComponent{Value: 15})
+	assert.Equal(15, ecs.GetRef(e, ValueComponentRef).Value, "should overwrite component")
 
-	entity.Add(&MessageComponent{Message: "Hello"})
-	assert.Equal("Hello", (*entity.Get(MessageComponentMask)).(*MessageComponent).Message, "should add another component")
-	assert.Equal(ValueComponentMask|MessageComponentMask, entity.GetMask(), "should make mask of two components")
+	e.Add(&MessageComponent{Message: "Hello"})
+	assert.Equal("Hello", (*e.Get(MessageComponentMask)).(*MessageComponent).Message, "should add another component")
+	assert.Equal(ValueComponentMask|MessageComponentMask, e.GetMask(), "should make mask of two components")
 
-	entity.Del(ValueComponentMask)
-	assert.False(entity.Has(ValueComponentMask), "should del component")
-	assert.Nil(entity.Get(ValueComponentMask), "should del component")
-	assert.True(entity.Has(MessageComponentMask), "should not del another component")
-	assert.Equal(MessageComponentMask, entity.GetMask(), "should subtract removed component from mask")
+	e.Del(ValueComponentMask)
+	assert.False(e.Has(ValueComponentMask), "should del component")
+	assert.Nil(e.Get(ValueComponentMask), "should del component")
+	assert.True(e.Has(MessageComponentMask), "should not del another component")
+	assert.Equal(MessageComponentMask, e.GetMask(), "should subtract removed component from mask")
 
-	entity.Del(MessageComponentMask)
-	assert.Equal(ecs.ComponentMask(0), entity.GetMask(), "should return empty mask")
+	e.Del(MessageComponentMask)
+	assert.Equal(ecs.ComponentMask(0), e.GetMask(), "should return empty mask")
 }
 
 func TestFilter(t *testing.T) {
@@ -64,21 +69,21 @@ func TestFilter(t *testing.T) {
 
 	world := ecs.NewWorld()
 
-	world.CreateEntity().
+	world.NewEntity().
 		Add(&ValueComponent{Value: 1}).
 		Add(&MessageComponent{Message: "a"})
 
-	world.CreateEntity().
+	world.NewEntity().
 		Add(&ValueComponent{Value: 2}).
 		Add(&MessageComponent{Message: "b"})
 
-	world.CreateEntity().
+	world.NewEntity().
 		Add(&ValueComponent{Value: 3})
 
-	e1 := world.CreateEntity().
+	e1 := world.NewEntity().
 		Add(&MessageComponent{Message: "c"})
 
-	e2 := world.CreateEntity().
+	e2 := world.NewEntity().
 		Add(&MessageComponent{Message: "d"})
 
 	assert.Len(world.Filter(ValueComponentMask|MessageComponentMask), 2)
@@ -135,8 +140,9 @@ func TestSystem(t *testing.T) {
 func TestEntity(t *testing.T) {
 	assert := assert.New(t)
 	world := ecs.NewWorld()
+	world.Init()
 
-	entity := world.CreateEntity()
+	entity := world.NewEntity()
 	entity.Add(&ValueComponent{Value: 5})
 
 	filter := world.Filter(ValueComponentMask)

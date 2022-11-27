@@ -1,13 +1,13 @@
 package ecs
 
+import "fmt"
+
 type entity struct {
-	id    int
-	mask  ComponentMask
-	world *world
-
+	id          int
+	mask        ComponentMask
+	world       *world
+	components  map[ComponentMask]Component
 	isDestroyed bool
-
-	components map[ComponentMask]Component
 }
 
 func (e entity) GetMask() ComponentMask {
@@ -24,7 +24,7 @@ func (e entity) IsValid() bool {
 
 func (e *entity) Add(component Component) Entity {
 	if e.isDestroyed {
-		panic("access deleted entity")
+		panic("entity is destroyed")
 	}
 
 	e.components[component.GetMask()] = component
@@ -35,7 +35,7 @@ func (e *entity) Add(component Component) Entity {
 
 func (e entity) Has(mask ComponentMask) bool {
 	if e.isDestroyed {
-		panic("access deleted entity")
+		panic("entity is destroyed")
 	}
 
 	_, ok := e.components[mask]
@@ -44,7 +44,7 @@ func (e entity) Has(mask ComponentMask) bool {
 
 func (e *entity) Get(mask ComponentMask) *Component {
 	if e.isDestroyed {
-		panic("access deleted entity")
+		panic("entity is destroyed")
 	}
 
 	component, ok := e.components[mask]
@@ -58,27 +58,50 @@ func (e *entity) Get(mask ComponentMask) *Component {
 
 func (e *entity) Del(mask ComponentMask) Entity {
 	if e.isDestroyed {
-		panic("access deleted entity")
+		panic("entity is destroyed")
 	}
 
 	delete(e.components, mask)
 	e.setMask(e.mask &^ mask)
 
-	return e
-}
+	// Last component was deleted
+	if e.mask == 0 {
+		e.Destroy()
+	}
 
-func (e *entity) setMask(mask ComponentMask) {
-	e.world.removeEntityFromFilters(e.mask, e)
-	e.mask = mask
-	e.world.addEntityToFilters(e.mask, e)
+	return e
 }
 
 func (e *entity) Destroy() {
 	if e.isDestroyed {
-		panic("access deleted entity")
+		return
 	}
 
-	e.isDestroyed = true
-	e.world.removeEntityFromFilters(e.mask, e)
+	e.world.removeEntityFromFilters(e.mask, e, true)
 	e.mask = 0
+	e.components = nil
+	e.isDestroyed = true
+}
+
+func (e entity) String() string {
+	if !e.IsValid() {
+		return "Entity(destroyed)"
+	}
+	return fmt.Sprintf("Entity(%d)", e.id)
+}
+
+func (e *entity) setMask(mask ComponentMask) {
+	e.world.removeEntityFromFilters(e.mask, e, false)
+	e.mask = mask
+	e.world.addEntityToFilters(e.mask, e)
+}
+
+func newEntity(world *world) entity {
+	return entity{
+		id:          0,
+		mask:        0,
+		world:       world,
+		components:  map[ComponentMask]Component{},
+		isDestroyed: false,
+	}
 }

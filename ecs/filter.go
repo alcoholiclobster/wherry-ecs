@@ -31,7 +31,7 @@ func (f *filter) add(e Entity) {
 	f.dense = append(f.dense, entityId)
 
 	if len(f.sparse) < entityId+1 {
-		f.sparse = append(f.sparse, resize_amount)
+		f.sparse = append(f.sparse, make([]int, resize_amount)...)
 	}
 	f.sparse[entityId] = pos
 }
@@ -55,6 +55,7 @@ func (f *filter) del(e Entity) {
 	f.dense = f.dense[:len(f.dense)-1]
 }
 
+// check if given mask is matching filter
 func (f *filter) check(m ComponentMask) bool {
 	return m&f.mask == f.mask
 }

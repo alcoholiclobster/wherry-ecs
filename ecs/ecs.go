@@ -3,9 +3,9 @@ package ecs
 type ComponentMask uint64
 
 type World interface {
-	CreateEntity() Entity
-	Filter(mask ComponentMask) []Entity
+	NewEntity() Entity
 	AddSystem(system System) World
+	Filter(mask ComponentMask) []Entity
 
 	Init()
 	Run()
@@ -28,6 +28,8 @@ type Component interface {
 	GetMask() ComponentMask
 }
 
+type System interface{}
+
 type InitSystem interface {
 	Init()
 }
@@ -35,5 +37,3 @@ type InitSystem interface {
 type RunSystem interface {
 	Run()
 }
-
-type System interface{}
