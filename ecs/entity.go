@@ -1,9 +1,7 @@
 package ecs
 
-type entityId int
-
 type entity struct {
-	id    entityId
+	id    int
 	mask  ComponentMask
 	world *world
 
@@ -14,6 +12,10 @@ type entity struct {
 
 func (e entity) GetMask() ComponentMask {
 	return e.mask
+}
+
+func (e entity) GetId() int {
+	return e.id
 }
 
 func (e entity) IsValid() bool {

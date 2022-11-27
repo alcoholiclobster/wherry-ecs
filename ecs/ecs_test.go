@@ -81,24 +81,22 @@ func TestFilter(t *testing.T) {
 	e2 := world.CreateEntity().
 		Add(&MessageComponent{Message: "d"})
 
-	assert.Len(world.GetFilter(ValueComponentMask|MessageComponentMask).GetEntities(), 2)
-	assert.Len(world.GetFilter(ValueComponentMask).GetEntities(), 3)
-	assert.Len(world.GetFilter(MessageComponentMask).GetEntities(), 4)
+	assert.Len(world.Filter(ValueComponentMask|MessageComponentMask), 2)
+	assert.Len(world.Filter(ValueComponentMask), 3)
+	assert.Len(world.Filter(MessageComponentMask), 4)
 
-	(*world.GetFilter(ValueComponentMask | MessageComponentMask).GetEntities()[0].Get(ValueComponentMask)).(*ValueComponent).Value = 123
-	assert.Equal(123, (*world.GetFilter(ValueComponentMask).GetEntities()[0].Get(ValueComponentMask)).(*ValueComponent).Value)
+	(*world.Filter(ValueComponentMask | MessageComponentMask)[0].Get(ValueComponentMask)).(*ValueComponent).Value = 123
+	assert.Equal(123, (*world.Filter(ValueComponentMask)[0].Get(ValueComponentMask)).(*ValueComponent).Value)
 
 	e2.Destroy()
-	assert.Len(world.GetFilter(MessageComponentMask).GetEntities(), 3)
+	assert.Len(world.Filter(MessageComponentMask), 3)
 
 	e1.Del(MessageComponentMask)
-	assert.Len(world.GetFilter(MessageComponentMask).GetEntities(), 2)
+	assert.Len(world.Filter(MessageComponentMask), 2)
 }
 
 type MessageSystem struct {
-	world  ecs.World
-	filter ecs.Filter
-
+	world ecs.World
 	mock.Mock
 }
 
@@ -113,8 +111,6 @@ func (s *MessageSystem) Run() {
 func NewMessageSystem(world ecs.World) *MessageSystem {
 	return &MessageSystem{
 		world,
-		world.GetFilter(MessageComponentMask),
-
 		mock.Mock{},
 	}
 }
@@ -143,15 +139,15 @@ func TestEntity(t *testing.T) {
 	entity := world.CreateEntity()
 	entity.Add(&ValueComponent{Value: 5})
 
-	filter := world.GetFilter(ValueComponentMask)
+	filter := world.Filter(ValueComponentMask)
 
-	filterEntity := filter.GetEntities()[0]
+	filterEntity := filter[0]
 	assert.Equal(entity, filterEntity)
 
 	world.Run()
 
 	entity.Del(ValueComponentMask)
-	assert.Len(filter.GetEntities(), 0)
+	assert.Len(world.Filter(ValueComponentMask), 0)
 
 	world.Run()
 

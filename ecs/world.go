@@ -17,37 +17,31 @@ func (w *world) CreateEntity() Entity {
 
 	for i, e2 := range w.entities {
 		if e2 == nil {
-			e.id = entityId(i)
+			e.id = int(i)
 			return &e
 		}
 	}
 
-	e.id = entityId(len(w.entities))
+	e.id = int(len(w.entities))
 	w.entities = append(w.entities, &e)
 
 	return &e
 }
 
-func (w *world) GetFilter(mask ComponentMask) Filter {
+func (w *world) Filter(mask ComponentMask) []Entity {
 	if f, ok := w.filters[mask]; ok {
-		return f
+		return f.get()
 	}
 
-	f := filter{
-		w:        w,
-		entities: make([]Entity, 0),
-		mask:     mask,
-	}
-
+	f := newFilter(w, mask)
 	w.filters[mask] = &f
 
+	// Add matching existing entities to filter
 	for _, e := range w.entities {
-		if e.mask&f.mask == f.mask {
-			f.entities = append(f.entities, e)
-		}
+		f.add(e)
 	}
 
-	return &f
+	return f.get()
 }
 
 func (w *world) AddSystem(s System) World {
@@ -97,20 +91,14 @@ func (w *world) addEntityToFilters(mask ComponentMask, entity Entity) {
 	}
 
 	for _, f := range w.filters {
-		if mask&f.mask == f.mask {
-			f.entities = append(f.entities, entity)
-		}
+		f.add(entity)
 	}
 }
 
 func (w *world) removeEntityFromFilters(mask ComponentMask, entity Entity) {
 	for _, f := range w.filters {
-		if mask&f.mask == f.mask {
-			for index, e := range f.entities {
-				if e == entity {
-					f.entities = append(f.entities[:index], f.entities[index+1:]...)
-				}
-			}
+		if f.check(mask) {
+			f.del(entity)
 		}
 	}
 }

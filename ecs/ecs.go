@@ -4,7 +4,7 @@ type ComponentMask uint64
 
 type World interface {
 	CreateEntity() Entity
-	GetFilter(mask ComponentMask) Filter
+	Filter(mask ComponentMask) []Entity
 	AddSystem(system System) World
 
 	Init()
@@ -13,6 +13,7 @@ type World interface {
 
 type Entity interface {
 	GetMask() ComponentMask
+	GetId() int
 
 	Add(component Component) Entity
 	Get(mask ComponentMask) *Component
@@ -36,7 +37,3 @@ type RunSystem interface {
 }
 
 type System interface{}
-
-type Filter interface {
-	GetEntities() []Entity
-}
