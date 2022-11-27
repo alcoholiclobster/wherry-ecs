@@ -60,7 +60,7 @@ func (w *world) AddSystem(system System) World {
 
 func (w *world) Init() {
 	if w.isInitialized {
-		panic("world is already initalized")
+		panic("world is already initialized")
 	}
 
 	for _, s := range w.systems {
@@ -74,7 +74,7 @@ func (w *world) Init() {
 
 func (w *world) Run() {
 	if !w.isInitialized {
-		panic("world is not initalized")
+		panic("world is not initialized")
 	}
 
 	for _, s := range w.systems {
