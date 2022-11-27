@@ -2,6 +2,31 @@ package ecs
 
 import "fmt"
 
+type Entity interface {
+	GetMask() ComponentMask
+	GetId() int
+
+	Add(component Component) Entity
+	Get(mask ComponentMask) *Component
+	Has(mask ComponentMask) bool
+	Del(mask ComponentMask) Entity
+
+	IsValid() bool
+	Destroy()
+}
+
+// Get component by mask and assert it to generic type
+// Example: c := ecs.GetByMask[*MyComponent](entity, MyComponentMask)
+func GetByMask[T Component](entity Entity, mask ComponentMask) T {
+	return (*entity.Get(mask)).(T)
+}
+
+// Get component by component reference
+// For example: c := ecs.GetRef(entity, &MyComponent{})
+func GetRef[T Component](entity Entity, component T) T {
+	return (*entity.Get(component.GetMask())).(T)
+}
+
 type entity struct {
 	id          int
 	mask        ComponentMask

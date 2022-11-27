@@ -10,13 +10,9 @@ type filter struct {
 	dense  []int
 }
 
-func (f *filter) get() []Entity {
-	entities := make([]Entity, len(f.dense))
-	for i, item := range f.dense {
-		entities[i] = f.w.entities[item]
-	}
-
-	return entities
+// Check if given mask is matching filter
+func (f *filter) check(m ComponentMask) bool {
+	return m&f.mask == f.mask
 }
 
 // Add entity to the filter if entity mask is matching
@@ -36,7 +32,16 @@ func (f *filter) add(e Entity) {
 	f.sparse[entityId] = pos
 }
 
-// Delete entity from the filter if it exists
+func (f *filter) get() []Entity {
+	entities := make([]Entity, len(f.dense))
+	for i, item := range f.dense {
+		entities[i] = f.w.entities[item]
+	}
+
+	return entities
+}
+
+// Delete entity from the filter
 func (f *filter) del(e Entity) {
 	if len(f.dense) == 0 {
 		return
@@ -53,11 +58,6 @@ func (f *filter) del(e Entity) {
 	f.sparse[last] = tmp
 
 	f.dense = f.dense[:len(f.dense)-1]
-}
-
-// check if given mask is matching filter
-func (f *filter) check(m ComponentMask) bool {
-	return m&f.mask == f.mask
 }
 
 func newFilter(world *world, mask ComponentMask) filter {

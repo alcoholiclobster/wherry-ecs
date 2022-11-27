@@ -1,5 +1,14 @@
 package ecs
 
+type World interface {
+	NewEntity() Entity
+	AddSystem(system System) World
+	Filter(mask ComponentMask) []Entity
+
+	Init()
+	Run()
+}
+
 type world struct {
 	entities []*entity
 	filters  map[ComponentMask]*filter
