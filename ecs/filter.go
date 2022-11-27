@@ -11,8 +11,8 @@ type filter struct {
 }
 
 // Check if given mask is matching filter
-func (f *filter) check(m ComponentMask) bool {
-	return m&f.mask == f.mask
+func (f *filter) check(mask ComponentMask) bool {
+	return mask&f.mask == f.mask
 }
 
 // Add entity to the filter if entity mask is matching

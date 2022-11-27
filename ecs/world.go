@@ -52,8 +52,8 @@ func (w *world) Filter(mask ComponentMask) []Entity {
 	return f.get()
 }
 
-func (w *world) AddSystem(s System) World {
-	w.systems = append(w.systems, s)
+func (w *world) AddSystem(system System) World {
+	w.systems = append(w.systems, system)
 
 	return w
 }
