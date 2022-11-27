@@ -2,19 +2,12 @@ package ecs
 
 type World interface {
 	NewEntity() Entity
-	AddSystem(system System) World
 	Filter(mask ComponentMask) []Entity
-
-	Init()
-	Run()
 }
 
 type world struct {
 	entities []*entity
 	filters  map[ComponentMask]*filter
-	systems  []System
-
-	isInitialized bool
 }
 
 func (w *world) NewEntity() Entity {
@@ -52,38 +45,6 @@ func (w *world) Filter(mask ComponentMask) []Entity {
 	return f.get()
 }
 
-func (w *world) AddSystem(system System) World {
-	w.systems = append(w.systems, system)
-
-	return w
-}
-
-func (w *world) Init() {
-	if w.isInitialized {
-		panic("world is already initialized")
-	}
-
-	for _, s := range w.systems {
-		if s, ok := s.(InitSystem); ok {
-			s.Init()
-		}
-	}
-
-	w.isInitialized = true
-}
-
-func (w *world) Run() {
-	if !w.isInitialized {
-		panic("world is not initialized")
-	}
-
-	for _, s := range w.systems {
-		if s, ok := s.(RunSystem); ok {
-			s.Run()
-		}
-	}
-}
-
 func (w *world) addEntityToFilters(mask ComponentMask, e *entity) {
 	if mask != 0 {
 		for _, f := range w.filters {
@@ -113,9 +74,6 @@ func (w world) String() string {
 func NewWorld() World {
 	return &world{
 		entities: make([]*entity, 0),
-		systems:  make([]System, 0),
 		filters:  make(map[ComponentMask]*filter),
-
-		isInitialized: false,
 	}
 }

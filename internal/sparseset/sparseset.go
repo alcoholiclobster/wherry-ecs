@@ -28,7 +28,6 @@ func (s *sparseSet) Add(element int) {
 		}
 
 		s.sparse = append(s.sparse, make([]int, count)...)
-		print(len(s.sparse))
 	}
 	s.sparse[element] = pos
 }

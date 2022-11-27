@@ -56,30 +56,9 @@ func TestFilter(t *testing.T) {
 	assert.Len(world.Filter(SecondComponentMask), 2)
 }
 
-func TestAddSystem(t *testing.T) {
-	world := ecs.NewWorld()
-	messageSystem := NewMockSystem(world)
-	messageSystem.On("Run").Return()
-	messageSystem.On("Init").Return()
-
-	world.
-		AddSystem(messageSystem).
-		Init()
-
-	messageSystem.AssertCalled(t, "Init")
-
-	world.Run()
-
-	messageSystem.AssertCalled(t, "Run")
-}
-
 func TestEntity(t *testing.T) {
 	assert := assert.New(t)
 	world := ecs.NewWorld()
-	assert.Panics(func() { world.Run() }, "should not allow Run before Init")
-
-	world.Init()
-	assert.Panics(func() { world.Init() }, "should not allow calling Init twice")
 
 	entity := world.NewEntity()
 	entity.Add(&FirstComponent{Num: 5})
@@ -94,13 +73,9 @@ func TestEntity(t *testing.T) {
 	filterEntity := filter[0]
 	assert.Equal(entity, filterEntity)
 
-	world.Run()
-
 	entity.Del(FirstComponentMask)
 	assert.Len(world.Filter(FirstComponentMask), 0)
 	assert.False(entity.IsValid(), "entity should destroy")
-
-	world.Run()
 
 	assert.False(entity.IsValid())
 	assert.NotPanics(func() {
