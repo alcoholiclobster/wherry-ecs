@@ -1,7 +1,7 @@
 package ecs_test
 
 import (
-	"github.com/alcoholiclobster/go-ecs/ecs"
+	"github.com/alcoholiclobster/wherry-ecs/pkg/ecs"
 )
 
 var (

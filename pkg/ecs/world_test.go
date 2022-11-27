@@ -3,7 +3,7 @@ package ecs_test
 import (
 	"testing"
 
-	"github.com/alcoholiclobster/go-ecs/ecs"
+	"github.com/alcoholiclobster/wherry-ecs/pkg/ecs"
 	"github.com/stretchr/testify/assert"
 )
 

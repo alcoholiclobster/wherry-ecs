@@ -1,4 +1,4 @@
-module github.com/alcoholiclobster/go-ecs
+module github.com/alcoholiclobster/wherry-ecs
 
 go 1.19
 
