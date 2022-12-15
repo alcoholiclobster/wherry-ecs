@@ -1,52 +1,68 @@
 package ecs
 
-type System interface {
-	Init(args ...any)
-	Run(args ...any)
+type RunSystem interface {
+	Run(World)
+}
+
+type InitSystem interface {
+	Init(World)
 }
 
 type Systems interface {
-	Add(system System) Systems
+	Add(system any) Systems
 
 	Init(args ...any)
 	Run(args ...any)
 }
 
 type systems struct {
-	list   []System
-	isInit bool
+	isInitialized bool
+
+	runSystems  []RunSystem
+	initSystems []InitSystem
+
+	world World
 }
 
-func (s *systems) Add(system System) Systems {
-	s.list = append(s.list, system)
+// Adds a RunSystem or InitSystem to systems
+func (s *systems) Add(system any) Systems {
+	if runSystem, ok := system.(RunSystem); ok {
+		s.runSystems = append(s.runSystems, runSystem)
+	}
+
+	if initSystem, ok := system.(InitSystem); ok {
+		s.initSystems = append(s.initSystems, initSystem)
+	}
 
 	return s
 }
 
 func (s *systems) Init(args ...any) {
-	if s.isInit {
-		panic("world is already initialized")
+	if s.isInitialized {
+		panic("systems are already initialized")
 	}
 
-	for _, s := range s.list {
-		s.Init(args...)
+	for _, system := range s.initSystems {
+		system.Init(s.world)
 	}
 
-	s.isInit = true
+	s.isInitialized = true
 }
 
 func (s *systems) Run(args ...any) {
-	if !s.isInit {
-		panic("world is not initialized")
+	if !s.isInitialized {
+		panic("systems are not initialized")
 	}
 
-	for _, s := range s.list {
-		s.Run(args...)
+	for _, system := range s.runSystems {
+		system.Run(s.world)
 	}
 }
 
-func NewSystems() Systems {
+func NewSystems(world World) Systems {
 	return &systems{
-		list: []System{},
+		runSystems:  []RunSystem{},
+		initSystems: []InitSystem{},
+		world:       world,
 	}
 }

@@ -9,28 +9,26 @@ import (
 )
 
 type MockSystem struct {
-	world ecs.World
 	mock.Mock
 }
 
-func (s *MockSystem) Init(args ...any) {
+func (s *MockSystem) Init(world ecs.World, args ...any) {
 	s.MethodCalled("Init", args...)
 }
 
-func (s *MockSystem) Run(args ...any) {
+func (s *MockSystem) Run(world ecs.World, args ...any) {
 	s.MethodCalled("Run", args...)
 }
 
-func NewMockSystem(world ecs.World) *MockSystem {
+func NewMockSystem() *MockSystem {
 	return &MockSystem{
-		world,
 		mock.Mock{},
 	}
 }
 
 func TestSystemsLoop(t *testing.T) {
 	assert := assert.New(t)
-	systems := ecs.NewSystems()
+	systems := ecs.NewSystems(ecs.NewWorld())
 
 	assert.Panics(func() { systems.Run() }, "should not allow Run before Init")
 	assert.NotPanics(func() { systems.Init() }, "should initialize")
@@ -40,20 +38,20 @@ func TestSystemsLoop(t *testing.T) {
 
 func TestSystemsAdd(t *testing.T) {
 	world := ecs.NewWorld()
-	systems := ecs.NewSystems()
+	systems := ecs.NewSystems(world)
 
-	messageSystem := NewMockSystem(world)
-	messageSystem.On("Run", mock.Anything, mock.Anything).Return()
-	messageSystem.On("Init", mock.Anything).Return()
-	messageSystem.On(mock.Anything)
+	mockSystem := NewMockSystem()
+	mockSystem.On("Run", mock.Anything, mock.Anything).Return()
+	mockSystem.On("Init", mock.Anything).Return()
+	mockSystem.On(mock.Anything)
 
 	systems.
-		Add(messageSystem).
+		Add(mockSystem).
 		Init(123)
 
-	messageSystem.AssertCalled(t, "Init", 123)
+	mockSystem.AssertCalled(t, "Init", 123)
 
 	systems.Run("Test Value 1", 1234)
 
-	messageSystem.AssertCalled(t, "Run", "Test Value 1", 1234)
+	mockSystem.AssertCalled(t, "Run", "Test Value 1", 1234)
 }
